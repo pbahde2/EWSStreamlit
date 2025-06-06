@@ -72,8 +72,10 @@ def show_tab_provisionsabrechnung():
                 df = pd.read_csv(file, sep=";", encoding="latin1", decimal=",", skiprows=1)
                 df["Name_kurz"] = (
                     df["Nachname"] + " " + df["Vorname"]
-                ).str.lower().str.replace("ß", "ss").str.replace(r"[^a-zäöü ]", "", regex=True).str.replace("-", " ").str.strip()
-
+                    ).str.lower().str.replace("ß", "ss").str.replace(r"[^a-zäöü ]", "", regex=True).str.replace("-", " ").str.strip()
+                df["Name_kurs_andersherum"] = (
+                    df["Vorname"] + " " + df["Nachname"]
+                    ).str.lower().str.replace("ß", "ss").str.replace(r"[^a-zäöü ]", "", regex=True).str.replace("-", " ").str.strip()
                 df["Gesamtkosten"] = (
                     df["Gesamtkosten"].astype(str)
                     .str.replace(".", "", regex=False)
@@ -86,7 +88,11 @@ def show_tab_provisionsabrechnung():
             df_gesamt = df_gesamt.groupby("Name_kurz", as_index=False)["Gesamtkosten"].sum()
 
             # === 3. Zusammenführen ===
-            df_merged = pd.merge(df_pdf, df_gesamt, on="Name_kurz", how="left")
+            merge1 = pd.merge(df_pdf, df_gesamt, on="Name_kurz", how="left")
+            merge2 = pd.merge(df_pdf, df_gesamt, left_on="Name_andersherum", right_on="Name_kurz", how="left")
+
+            # merge1 hat Priorität, merge2 füllt Lücken
+            df_merged = merge1.combine_first(merge2)
             df_final = df_merged[["Name", "Provision (PDF)", "Gesamtkosten"]]
             df_final["Differenz"] = df_final["Provision (PDF)"] - df_final["Gesamtkosten"]
             df_final["Quote"] = df_final["Gesamtkosten"]/df_final["Provision (PDF)"]
