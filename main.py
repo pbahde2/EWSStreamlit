@@ -1,0 +1,22 @@
+import numpy as np
+import streamlit as st
+import pandas as pd
+from io import BytesIO
+from tabs.sportgmbh import show_tab_sport
+from tabs.verein import show_tab_verein
+from tabs.provisionsabrechnung import show_tab_provisionsabrechnung
+
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Seite auswählen", ["Erlösaufteilung (Wordpress)", "Provisionsabrechnung"])
+
+if page == "Erlösaufteilung (Wordpress)":
+    st.title("Erlösaufteilung")
+    tab1, tab2 = st.tabs(["Verein", "Sport GmbH"])
+    with tab1:
+        show_tab_verein()
+    with tab2:
+        show_tab_sport()
+
+elif page == "Provisionsabrechnung":
+    show_tab_provisionsabrechnung()
+
