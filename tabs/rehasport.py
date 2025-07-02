@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from io import BytesIO
 def show_tab_rehasport():
+    st.title("Erlösaufteilung")
     # Datei-Upload
     uploaded_file_reha = st.file_uploader("Lade deine CSV- oder Excel-Datei hoch", type=["csv", "xlsx"], key="reha")
 
