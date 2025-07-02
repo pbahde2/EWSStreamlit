@@ -5,9 +5,10 @@ from io import BytesIO
 from tabs.sportgmbh import show_tab_sport
 from tabs.verein import show_tab_verein
 from tabs.provisionsabrechnung import show_tab_provisionsabrechnung
+from tabs.rehasport import show_tab_rehasport
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Seite auswählen", ["Erlösaufteilung (Wordpress)", "Provisionsabrechnung"])
+page = st.sidebar.radio("Seite auswählen", ["Erlösaufteilung (Wordpress)", "Provisionsabrechnung", "Rehasport"])
 
 if page == "Erlösaufteilung (Wordpress)":
     st.title("Erlösaufteilung")
@@ -20,3 +21,5 @@ if page == "Erlösaufteilung (Wordpress)":
 elif page == "Provisionsabrechnung":
     show_tab_provisionsabrechnung()
 
+elif page == "Rehasport":
+    show_tab_rehasport()
