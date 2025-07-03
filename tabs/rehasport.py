@@ -17,7 +17,6 @@ def show_tab_rehasport():
                 df = pd.read_excel(uploaded_file_reha, header=None)
 
             df.columns = ['', 'Kurs', 'Standort', 'Teilnehmer', "Datum", "Uhrzeit", ""]  # Beispiel
-            print("testNEU")
             # --- 📆 Order Date verarbeiten ---
             df["Datum"] = pd.to_datetime(df["Datum"], errors="coerce")
             df["Monat"] = df["Datum"].dt.to_period("M")
@@ -27,7 +26,6 @@ def show_tab_rehasport():
                 "Wähle die Zeitgranularität:",
                 options=["Monat", "Jahr"]
             )
-            print("test")
 
             # --- 📊 Neue Spalte je nach Auswahl erstellen ---
             summary = df.groupby([zeit_granularitaet, "Kurs","Standort"]).agg(
@@ -36,7 +34,6 @@ def show_tab_rehasport():
                 Einnahmen=("Einnahmen","sum")
             ).reset_index()
             summary["Durschnitt-TN"] = summary["Anzahl_Teilnehmer"] / summary["Anzahl_Kurse"]
-            print("test")
 
             #Standorte
             summary_standorte = summary.groupby(["Standort", zeit_granularitaet]).agg(
@@ -45,7 +42,6 @@ def show_tab_rehasport():
                 Einnahmen=("Einnahmen","sum")).reset_index()
             summary_standorte["Durschnitt-TN"] = summary_standorte["Anzahl_Teilnehmer"] / summary_standorte["Anzahl_Kurse"]
             summary_kursleiter = None
-            print("test")
             if uploaded_file_Kurstrainer is not None:
                 # Datei einlesen
                 if uploaded_file_Kurstrainer.name.endswith(".csv"):
@@ -57,7 +53,6 @@ def show_tab_rehasport():
                 summary["Kursleiter-Kosten"] = summary["Kursleiter-Stundenkosten"] * summary["Anzahl_Kurse"]
                 summary["Gewinn"] = summary["Einnahmen"] - summary["Kursleiter-Kosten"]
                 #Standorte
-                print("test")
                 summary_standorte = summary.groupby(["Standort", zeit_granularitaet]).agg(
                     Anzahl_Kurse=("Anzahl_Kurse", "sum"),
                     Anzahl_Teilnehmer=("Anzahl_Teilnehmer", "sum"),
@@ -65,7 +60,6 @@ def show_tab_rehasport():
                     Kursleiter_Kosten=("Kursleiter-Kosten","sum"),
                     Gewinn=("Gewinn","sum")).reset_index()
                 summary_standorte["Durschnitt-TN"] = summary_standorte["Anzahl_Teilnehmer"] / summary_standorte["Anzahl_Kurse"]
-                print("test")
                 #Kursleiter
                 summary_kursleiter = summary.groupby(["Kursleiter", zeit_granularitaet]).agg(
                     Anzahl_Kurse=("Anzahl_Kurse", "sum"),
@@ -74,7 +68,6 @@ def show_tab_rehasport():
                     Kursleiter_Kosten=("Kursleiter-Kosten","sum"),
                     Gewinn=("Gewinn","sum")).reset_index()
                 summary_kursleiter["Durschnitt-TN"] = summary_kursleiter["Anzahl_Teilnehmer"] / summary_kursleiter["Anzahl_Kurse"]
-            print("test")
             # Anzeige
             st.success("✅ Übersicht über alle Standorte")
             st.dataframe(summary_standorte)
