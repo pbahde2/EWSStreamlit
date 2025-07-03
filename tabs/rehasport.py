@@ -17,43 +17,64 @@ def show_tab_rehasport():
                 df = pd.read_excel(uploaded_file_reha, header=None)
 
             df.columns = ['', 'Kurs', 'Standort', 'Teilnehmer', "Datum", "Uhrzeit", ""]  # Beispiel
+            print("testNEU")
             # --- 📆 Order Date verarbeiten ---
             df["Datum"] = pd.to_datetime(df["Datum"], errors="coerce")
             df["Monat"] = df["Datum"].dt.to_period("M")
             df["Jahr"] = df["Datum"].dt.to_period("Y")
-    
+            df["Einnahmen"] = df["Teilnehmer"] * 6.32
             zeit_granularitaet = st.selectbox(
                 "Wähle die Zeitgranularität:",
                 options=["Monat", "Jahr"]
             )
+            print("test")
+
             # --- 📊 Neue Spalte je nach Auswahl erstellen ---
             summary = df.groupby([zeit_granularitaet, "Kurs","Standort"]).agg(
                 Anzahl_Kurse=("Kurs", "count"),
-                Anzahl_Teilnehmer=("Teilnehmer", "sum")
+                Anzahl_Teilnehmer=("Teilnehmer", "sum"),
+                Einnahmen=("Einnahmen","sum")
             ).reset_index()
-            summary["Durschnitt"] = summary["Anzahl_Teilnehmer"] / summary["Anzahl_Kurse"]
+            summary["Durschnitt-TN"] = summary["Anzahl_Teilnehmer"] / summary["Anzahl_Kurse"]
+            print("test")
+
+            #Standorte
+            summary_standorte = summary.groupby(["Standort", zeit_granularitaet]).agg(
+                Anzahl_Kurse=("Anzahl_Kurse", "sum"),
+                Anzahl_Teilnehmer=("Anzahl_Teilnehmer", "sum"),
+                Einnahmen=("Einnahmen","sum")).reset_index()
+            summary_standorte["Durschnitt-TN"] = summary_standorte["Anzahl_Teilnehmer"] / summary_standorte["Anzahl_Kurse"]
             summary_kursleiter = None
+            print("test")
             if uploaded_file_Kurstrainer is not None:
                 # Datei einlesen
                 if uploaded_file_Kurstrainer.name.endswith(".csv"):
                     df_kurstrainer = pd.read_csv(uploaded_file_Kurstrainer, header=None)
                 else:
                     df_kurstrainer = pd.read_excel(uploaded_file_Kurstrainer, header=None)
-                df_kurstrainer.columns = ['Kurs', 'Kursleiter']
+                df_kurstrainer.columns = ['Kurs', 'Kursleiter',"Kursleiter-Stundenkosten"]
                 summary = pd.merge(summary,df_kurstrainer,on="Kurs",how="left")
-            #Standorte
-            summary_standorte = summary.groupby(["Standort", zeit_granularitaet]).agg(
-                Anzahl_Kurse=("Anzahl_Kurse", "sum"),
-                Anzahl_Teilnehmer=("Anzahl_Teilnehmer", "sum")).reset_index()
-            summary_standorte["Durschnitt"] = summary_standorte["Anzahl_Teilnehmer"] / summary_standorte["Anzahl_Kurse"]
-
-            #Kursleiter
-            if uploaded_file_Kurstrainer is not None:
+                summary["Kursleiter-Kosten"] = summary["Kursleiter-Stundenkosten"] * summary["Anzahl_Kurse"]
+                summary["Gewinn"] = summary["Einnahmen"] - summary["Kursleiter-Kosten"]
+                #Standorte
+                print("test")
+                summary_standorte = summary.groupby(["Standort", zeit_granularitaet]).agg(
+                    Anzahl_Kurse=("Anzahl_Kurse", "sum"),
+                    Anzahl_Teilnehmer=("Anzahl_Teilnehmer", "sum"),
+                    Einnahmen=("Einnahmen","sum"),
+                    Kursleiter_Kosten=("Kursleiter-Kosten","sum"),
+                    Gewinn=("Gewinn","sum")).reset_index()
+                summary_standorte["Durschnitt-TN"] = summary_standorte["Anzahl_Teilnehmer"] / summary_standorte["Anzahl_Kurse"]
+                print("test")
+                #Kursleiter
                 summary_kursleiter = summary.groupby(["Kursleiter", zeit_granularitaet]).agg(
                     Anzahl_Kurse=("Anzahl_Kurse", "sum"),
-                    Anzahl_Teilnehmer=("Anzahl_Teilnehmer", "sum")).reset_index()
-                summary_kursleiter["Durschnitt"] = summary_kursleiter["Anzahl_Teilnehmer"] / summary_kursleiter["Anzahl_Kurse"]
-
+                    Anzahl_Teilnehmer=("Anzahl_Teilnehmer", "sum"),
+                    Einnahmen=("Einnahmen","sum"),
+                    Kursleiter_Kosten=("Kursleiter-Kosten","sum"),
+                    Gewinn=("Gewinn","sum")).reset_index()
+                summary_kursleiter["Durschnitt-TN"] = summary_kursleiter["Anzahl_Teilnehmer"] / summary_kursleiter["Anzahl_Kurse"]
+            print("test")
             # Anzeige
             st.success("✅ Übersicht über alle Standorte")
             st.dataframe(summary_standorte)
