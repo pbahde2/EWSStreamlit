@@ -89,11 +89,11 @@ def show_tab_provisionsabrechnung():
 
             # === 3. Zusammenführen ===
             merge1 = pd.merge(df_pdf, df_gesamt, on="Name_kurz", how="left")
-            merge2 = pd.merge(df_pdf, df_gesamt, left_on="Name_andersherum", right_on="Name_kurz", how="left")
+            #merge2 = pd.merge(df_pdf, df_gesamt, left_on="Name_andersherum", right_on="Name_kurz", how="left")
 
             # merge1 hat Priorität, merge2 füllt Lücken
-            df_merged = merge1.combine_first(merge2)
-            df_final = df_merged[["Name", "Provision (PDF)", "Gesamtkosten"]]
+            #df_merged = merge1.combine_first(merge2)
+            df_final = merge1[["Name", "Provision (PDF)", "Gesamtkosten"]]
             df_final["Differenz"] = df_final["Provision (PDF)"] - df_final["Gesamtkosten"]
             df_final["Quote"] = df_final["Gesamtkosten"]/df_final["Provision (PDF)"]
 
