@@ -16,12 +16,15 @@ def show_tab_sport():
 
             # Prüfen, ob notwendige Spalten existieren
             required_columns = [
-                "Order Date", "Category", "Item Cost", "Item Cost (inc. tax)"
+                "Order Date", "Category", "Item Cost", "Item Cost (inc. tax)", "Payment Method"
             ]
             missing = [col for col in required_columns if col not in df.columns]
             if missing:
                 st.error(f"❌ Fehlende Spalten: {', '.join(missing)}")
             else:
+                stripe = st.checkbox("Filtern: Nur Stripe-Erlöse", value=True)
+                if stripe:
+                   df = df[df["Payment Method"] == "stripe"]
                 # --- 📆 Order Date verarbeiten ---
                 df["Order Date"] = pd.to_datetime(df["Order Date"], errors="coerce")
                 df["Monat"] = df["Order Date"].dt.to_period("M")
