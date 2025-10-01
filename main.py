@@ -6,9 +6,10 @@ from tabs.sportgmbh import show_tab_sport
 from tabs.verein import show_tab_verein
 from tabs.provisionsabrechnung import show_tab_provisionsabrechnung
 from tabs.rehasport import show_tab_rehasport
+from tabs.controlling.startpage import show_tab_controlling
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Seite auswählen", ["Erlösaufteilung (Wordpress)", "Provisionsabrechnung", "Rehasport"])
+page = st.sidebar.radio("Seite auswählen", ["Erlösaufteilung (Wordpress)", "Provisionsabrechnung", "Rehasport", "Controllig Gesamt"])
 
 if page == "Erlösaufteilung (Wordpress)":
     st.title("Erlösaufteilung")
@@ -23,3 +24,6 @@ elif page == "Provisionsabrechnung":
 
 elif page == "Rehasport":
     show_tab_rehasport()
+
+elif page == "Controllig Gesamt":
+    show_tab_controlling()
