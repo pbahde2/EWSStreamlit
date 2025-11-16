@@ -118,10 +118,7 @@ def check_correct_data(uploaded_file, uploaded_file_ma):
     required_columns = [
         "Vorname","Nachname","Pers.-Nr.","Gesamtzeit Std:Min","Gesamtzeit Dezimal",
         "Soll-Zeit Std:Min","Soll-Zeit Dezimal","Überstunden Std:Min","Überstunden Dezimal",
-        "Abwesenheiten Datum","Abwesenheiten Typ","Abwesenheiten Dauer (Tage)",
-        "Abwesenheit als Sollstunden Std:Min","Abwesenheit als Sollstunden Dezimal",
-        "Gesamtzeit mit Abwesenheits-Sollstunden Std:Min",
-        "Gesamtzeit mit Abwesenheits-Sollstunden Dezimal"
+        "Abwesenheiten Datum","Abwesenheiten Typ","Abwesenheiten Dauer (Tage)"
     ]
 
     required_columns_ma = ["Vorname", "Nachname", "Pers.-Nr.", "Mandant"]
