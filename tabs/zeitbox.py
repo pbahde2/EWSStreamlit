@@ -209,11 +209,21 @@ def get_df_urlaub(df):
         convert_to_numeric("Überstunden Dezimal", df)
         df_arbeitszeit= df[["Pers.-Nr.", "Vorname", "Nachname", "Abwesenheiten Typ", "Abwesenheiten Dauer (Tage)", "Mandant"]]
         df = df_arbeitszeit[df_arbeitszeit["Abwesenheiten Typ"] == "Urlaub (bezahlt)"]
+
+        # sicherstellen, dass die Tage numerisch sind
+        convert_to_numeric("Abwesenheiten Dauer (Tage)", df)
+        # Summieren pro Mitarbeiter
+        df = (
+            df
+            .groupby(["Pers.-Nr.", "Vorname", "Nachname", "Mandant"], as_index=False)
+            ["Abwesenheiten Dauer (Tage)"]
+            .sum()
+        )
+
         df = df.sort_values(by="Abwesenheiten Dauer (Tage)", ascending=False)
         st.dataframe(df)
-
         # 3️⃣ Lohnart zuweisen
-        df["Lohnart"] = 123
+        df["Lohnart"] = LOHNART_URLAUB
         df["Wert"] = df["Abwesenheiten Dauer (Tage)"]
 
         return df[["Mandant", "Pers.-Nr.", "Lohnart", "Wert"]]
@@ -284,8 +294,12 @@ def get_datev_datei(df, mandantennummer, abrechnungsmonat):
     # --- df_arbeitszeit muss die gleichen Spalten haben ---
     # Falls Spalten anders heißen, hier anpassen!
     df = df[df["Mandant"] == mandantennummer]
-    df = df[["Pers.-Nr.", "Lohnart", "Wert"]]
 
+    df = df[["Pers.-Nr.", "Lohnart", "Wert"]]
+    df["Wert"] = (
+    pd.to_numeric(df["Wert"], errors="coerce")
+        .map(lambda x: f"{x:.2f}".replace(".", ","))
+    )
     # --- Zusammenführen ---
     df_final = pd.concat([df_header, df], ignore_index=True)
     return df_final
@@ -315,6 +329,7 @@ def build_datev_csv_bytes(df_datev: pd.DataFrame) -> bytes:
         index=False,
         header=False,
         lineterminator="\r\n",
+
     )
     return csv_str.encode("cp1252", errors="replace")
 
