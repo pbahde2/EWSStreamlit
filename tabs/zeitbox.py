@@ -299,7 +299,7 @@ def get_datev_datei(df, mandantennummer, abrechnungsmonat):
     
     df["Wert"] = pd.to_numeric(df["Wert"], errors="coerce")
 
-    df = df[df["Wert"] < 0]
+    df = df[df["Wert"] != 0]
 
     df["Wert"] = df["Wert"].map(lambda x: f"{x:.2f}".replace(".", ","))
 
