@@ -296,10 +296,15 @@ def get_datev_datei(df, mandantennummer, abrechnungsmonat):
     df = df[df["Mandant"] == mandantennummer]
 
     df = df[["Pers.-Nr.", "Lohnart", "Wert"]]
-    df["Wert"] = (
-    pd.to_numeric(df["Wert"], errors="coerce")
-        .map(lambda x: f"{x:.2f}".replace(".", ","))
-    )
+    
+    df["Wert"] = pd.to_numeric(df["Wert"], errors="coerce")
+
+    df = df[df["Wert"] != 0]
+
+    df["Wert"] = df["Wert"].map(lambda x: f"{x:.2f}".replace(".", ","))
+
+
+
     # --- Zusammenführen ---
     df_final = pd.concat([df_header, df], ignore_index=True)
     return df_final
