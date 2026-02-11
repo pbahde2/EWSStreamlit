@@ -132,8 +132,29 @@ def check_correct_data(uploaded_file, uploaded_file_ma):
     if missing:
         st.error(f"❌ Fehlende Spalten in der MA-Zuordnung: {', '.join(missing)}")
 
-    # Vergleichslogik
     join_keys = ["Vorname", "Nachname", "Pers.-Nr."]
+
+    def standardize_columns(df, columns):
+        df = df.copy()
+        for col in columns:
+            # In String umwandeln
+            df[col] = df[col].astype(str)
+            
+            # Führende und nachfolgende Leerzeichen entfernen
+            df[col] = df[col].str.strip()
+            
+            # Mehrfache Leerzeichen innerhalb des Textes entfernen
+            df[col] = df[col].str.replace(r"\s+", " ", regex=True)
+            
+            # Einheitliche Groß-/Kleinschreibung
+            df[col] = df[col].str.lower()
+            
+        return df
+
+    # Beide DataFrames standardisieren
+    df = standardize_columns(df, join_keys)
+    df_ma = standardize_columns(df_ma, join_keys)
+
 
     only_in_df = df.merge(df_ma[join_keys], on=join_keys, how="left", indicator=True)
     only_in_df = only_in_df[only_in_df["_merge"] == "left_only"].drop(columns="_merge")
