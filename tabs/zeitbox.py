@@ -156,7 +156,6 @@ def check_correct_data(uploaded_file, uploaded_file_ma):
     df = standardize_columns(df, join_keys)
     df_ma = standardize_columns(df_ma, join_keys)
 
-
     only_in_df = df.merge(df_ma[join_keys], on=join_keys, how="left", indicator=True)
     only_in_df = only_in_df[only_in_df["_merge"] == "left_only"].drop(columns="_merge")
 
@@ -226,7 +225,6 @@ def filter(merged):
 
 
 def get_df_urlaub(df):
-
     with st.expander("Erkannten Urlaubstage 🏖️", expanded = False):
         convert_to_numeric("Überstunden Dezimal", df)
         df_arbeitszeit= df[["Pers.-Nr.", "Vorname", "Nachname", "Abwesenheiten Typ", "Abwesenheiten Dauer (Tage)", "Mandant"]]
@@ -289,27 +287,27 @@ def convert_to_numeric(col, df):
     assert col in df.columns, f"Spalte '{col}' nicht gefunden. Verfügbare Spalten: {list(df.columns)}"
 
     # --- Rohwerte in String konvertieren und säubern ---
-    s = df[col].astype(str)
+    s = df[col].astype("string[python]")
 
-    # Unicode-Minus (−) -> normales Minus (-)
+    # Unicode minus
     s = s.str.replace("−", "-", regex=False)
 
-    # Tausendertrennzeichen entfernen (Punkt / Leerzeichen / schmale Leerzeichen)
-    s = s.astype("string[python]")
+    # Falls Komma vorhanden → Punkt = Tausender
+    mask = s.str.contains(",", regex=False)
 
-    s = s.str.replace(".", "", regex=False)
+    s.loc[mask] = s.loc[mask].str.replace(".", "", regex=False)
+
+    # Leerzeichen entfernen
     s = s.str.replace(" ", "", regex=False)
     s = s.str.replace("\u202F", "", regex=False)
     s = s.str.replace("\u00A0", "", regex=False)
 
-    # deutsches Komma in Punkt wandeln
+    # Komma → Punkt
     s = s.str.replace(",", ".", regex=False)
-
-    # Nur erlaubte Zeichen behalten (Ziffern, +, -, .)
-    s = s.str.replace(r"[^0-9+\-\.]", "", regex=True)
 
     # --- In Zahl umwandeln ---
     df[col] = pd.to_numeric(s, errors="coerce").astype("Float64")
+
 
 
 def get_datev_datei(df, mandantennummer, abrechnungsmonat):
