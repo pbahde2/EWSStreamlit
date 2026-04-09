@@ -295,7 +295,12 @@ def convert_to_numeric(col, df):
     s = s.str.replace("−", "-", regex=False)
 
     # Tausendertrennzeichen entfernen (Punkt / Leerzeichen / schmale Leerzeichen)
-    s = s.str.replace(r"[.\s\u202F\u00A0]", "", regex=True)
+    s = s.astype("string[python]")
+
+    s = s.str.replace(".", "", regex=False)
+    s = s.str.replace(" ", "", regex=False)
+    s = s.str.replace("\u202F", "", regex=False)
+    s = s.str.replace("\u00A0", "", regex=False)
 
     # deutsches Komma in Punkt wandeln
     s = s.str.replace(",", ".", regex=False)
