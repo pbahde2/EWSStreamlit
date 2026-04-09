@@ -18,7 +18,7 @@ BERATERNUMMER = 446024
 def show_tab_zeitbox():
     st.header("Zeitbox-DATEV-Export 📄")
     st.subheader("Datenupload und Filter 📤 ❌")
-    with st.expander("Monat auswählen 📅", expanded = True):
+    with st.expander("Monat auswählen. 📅", expanded = True):
 
     # Liste der Monate
         monate = {
@@ -148,6 +148,7 @@ def check_correct_data(uploaded_file, uploaded_file_ma):
             
             # Einheitliche Groß-/Kleinschreibung
             df[col] = df[col].str.lower()
+            df[col] = df[col].str.replace("ß", "ss", regex=False)
             
         return df
 
