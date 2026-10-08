@@ -7,8 +7,12 @@ from tabs.verein import show_tab_verein
 from tabs.provisionsabrechnung import show_tab_provisionsabrechnung
 from tabs.rehasport import show_tab_rehasport
 from tabs.zeitbox import show_tab_zeitbox
+from tabs.wordpress_datev import show_tab_wordpress_datev
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Seite auswählen", ["Zeitbox", "Erlösaufteilung (Wordpress)", "Provisionsabrechnung", "Rehasport"])
+page = st.sidebar.radio(
+    "Seite auswählen",
+    ["Zeitbox", "Erlösaufteilung (Wordpress)", "Wordpress-Datev", "Provisionsabrechnung", "Rehasport"],
+)
 
 if page == "Erlösaufteilung (Wordpress)":
     st.title("Erlösaufteilung")
@@ -20,6 +24,9 @@ if page == "Erlösaufteilung (Wordpress)":
 
 elif page == "Zeitbox":
     show_tab_zeitbox()
+
+elif page == "Wordpress-Datev":
+    show_tab_wordpress_datev()
 
 elif page == "Provisionsabrechnung":
     show_tab_provisionsabrechnung()
