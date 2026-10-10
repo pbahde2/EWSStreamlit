@@ -220,6 +220,12 @@ def dataframe_excel_bytes(data: pd.DataFrame, sheet_name: str) -> bytes:
     return output.getvalue()
 
 
+def _read_wordpress_orders(uploaded_file) -> pd.DataFrame:
+    # Transaction IDs can consist only of digits. Without an explicit text dtype,
+    # pandas interprets the complete column as numbers and drops leading zeroes.
+    return pd.read_excel(uploaded_file, dtype={"Transaction ID": "string"})
+
+
 def build_complete_booking_list(
     orders: pd.DataFrame, config: pd.DataFrame
 ) -> pd.DataFrame:
@@ -475,7 +481,7 @@ def show_tab_wordpress_datev():
         return
 
     try:
-        orders = pd.read_excel(uploaded_file)
+        orders = _read_wordpress_orders(uploaded_file)
     except Exception as error:
         st.error(f"❌ Die Excel-Datei konnte nicht gelesen werden: {error}")
         return

@@ -224,34 +224,88 @@ def filter(merged):
 
 
 
-def get_df_urlaub(df):
-    with st.expander("Erkannten Urlaubstage 🏖️", expanded = False):
-        convert_to_numeric("Überstunden Dezimal", df)
-        df_arbeitszeit= df[["Pers.-Nr.", "Vorname", "Nachname", "Abwesenheiten Typ", "Abwesenheiten Dauer (Tage)", "Mandant"]]
-        df = df_arbeitszeit[df_arbeitszeit["Abwesenheiten Typ"] == "Urlaub (bezahlt)"]
+def split_vacation_rows(df):
+    """Trennt unsichere Urlaubszeilen mit Start am Monatsersten ab."""
+    columns = [
+        "Pers.-Nr.",
+        "Vorname",
+        "Nachname",
+        "Abwesenheiten Datum",
+        "Abwesenheiten Typ",
+        "Abwesenheiten Dauer (Tage)",
+        "Mandant",
+    ]
+    vacation_rows = df.loc[
+        df["Abwesenheiten Typ"] == "Urlaub (bezahlt)", columns
+    ].copy()
+    first_date = vacation_rows["Abwesenheiten Datum"].astype("string").str.extract(
+        r"^\s*(\d{1,2}\.\d{1,2}\.\d{4})", expand=False
+    )
+    starts_on_first = pd.to_datetime(
+        first_date, format="%d.%m.%Y", errors="coerce"
+    ).dt.day.eq(1)
+    return (
+        vacation_rows.loc[~starts_on_first].copy(),
+        vacation_rows.loc[starts_on_first].copy(),
+    )
 
+
+def get_df_urlaub(df):
+    vacation_rows, vacation_rows_to_review = split_vacation_rows(df)
+
+    with st.expander(
+        "Urlaubsfälle zur gesonderten Prüfung (Beginn am 01.) ⚠️",
+        expanded=True,
+    ):
+        if vacation_rows_to_review.empty:
+            st.success("Keine Urlaubszeilen mit Beginn am Monatsersten gefunden.")
+        else:
+            st.warning(
+                f"{len(vacation_rows_to_review)} Urlaubszeile(n) werden nicht in die "
+                "finalen DATEV-Dateien übernommen. Die Überstunden dieser "
+                "Mitarbeitenden bleiben unverändert enthalten."
+            )
+            st.dataframe(
+                vacation_rows_to_review[
+                    [
+                        "Pers.-Nr.",
+                        "Vorname",
+                        "Nachname",
+                        "Abwesenheiten Datum",
+                        "Abwesenheiten Dauer (Tage)",
+                        "Mandant",
+                    ]
+                ].sort_values(["Nachname", "Vorname"]),
+                hide_index=True,
+                width="stretch",
+            )
+
+    with st.expander("Erkannte Urlaubstage 🏖️", expanded=False):
         # sicherstellen, dass die Tage numerisch sind
-        convert_to_numeric("Abwesenheiten Dauer (Tage)", df)
+        convert_to_numeric("Abwesenheiten Dauer (Tage)", vacation_rows)
         # Summieren pro Mitarbeiter
-        df = (
-            df
+        vacation_rows = (
+            vacation_rows
             .groupby(["Pers.-Nr.", "Vorname", "Nachname", "Mandant"], as_index=False)
             ["Abwesenheiten Dauer (Tage)"]
             .sum()
         )
 
-        df = df.sort_values(by="Abwesenheiten Dauer (Tage)", ascending=False)
-        st.dataframe(df)
-        # 3️⃣ Lohnart zuweisen
-        df["Lohnart"] = LOHNART_URLAUB
-        df["Wert"] = df["Abwesenheiten Dauer (Tage)"]
+        vacation_rows = vacation_rows.sort_values(
+            by="Abwesenheiten Dauer (Tage)", ascending=False
+        )
+        st.dataframe(vacation_rows, hide_index=True, width="stretch")
+        vacation_rows["Lohnart"] = LOHNART_URLAUB
+        vacation_rows["Wert"] = vacation_rows["Abwesenheiten Dauer (Tage)"]
 
-        return df[["Mandant", "Pers.-Nr.", "Lohnart", "Wert"]]
+        return vacation_rows[["Mandant", "Pers.-Nr.", "Lohnart", "Wert"]]
 
 
 def get_df_arbeitszeit(df):
-        convert_to_numeric("Überstunden Dezimal", df)
-        df_arbeitszeit= df[["Pers.-Nr.", "Vorname", "Nachname", "Überstunden Dezimal", "Mandant"]]
+        df_arbeitszeit = df[
+            ["Pers.-Nr.", "Vorname", "Nachname", "Überstunden Dezimal", "Mandant"]
+        ].copy()
+        convert_to_numeric("Überstunden Dezimal", df_arbeitszeit)
         with st.expander("Erkannte Überstunden ⬆️", expanded=True):
             filtered_df = df_arbeitszeit[df_arbeitszeit["Überstunden Dezimal"] > 0]
             sorted_df = filtered_df.sort_values(by="Überstunden Dezimal", ascending=False)
@@ -362,6 +416,4 @@ def build_datev_csv_bytes(df_datev: pd.DataFrame) -> bytes:
 
     )
     return csv_str.encode("cp1252", errors="replace")
-
-
 

@@ -8,10 +8,20 @@ from tabs.provisionsabrechnung import show_tab_provisionsabrechnung
 from tabs.rehasport import show_tab_rehasport
 from tabs.zeitbox import show_tab_zeitbox
 from tabs.wordpress_datev import show_tab_wordpress_datev
+from tabs.myyolo_datev import show_tab_myyolo_datev
+from tabs.theorg_sta import show_tab_theorg_sta
 st.sidebar.title("Navigation")
 page = st.sidebar.radio(
     "Seite auswählen",
-    ["Zeitbox", "Erlösaufteilung (Wordpress)", "Wordpress-Datev", "Provisionsabrechnung", "Rehasport"],
+    [
+        "Zeitbox",
+        "Erlösaufteilung (Wordpress)",
+        "Wordpress-Datev",
+        "MyYOLO-Datev",
+        "THEORG-STA",
+        "Provisionsabrechnung",
+        "Rehasport",
+    ],
 )
 
 if page == "Erlösaufteilung (Wordpress)":
@@ -27,6 +37,12 @@ elif page == "Zeitbox":
 
 elif page == "Wordpress-Datev":
     show_tab_wordpress_datev()
+
+elif page == "MyYOLO-Datev":
+    show_tab_myyolo_datev()
+
+elif page == "THEORG-STA":
+    show_tab_theorg_sta()
 
 elif page == "Provisionsabrechnung":
     show_tab_provisionsabrechnung()
