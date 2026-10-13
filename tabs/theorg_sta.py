@@ -10,6 +10,7 @@ import streamlit as st
 
 
 REQUIRED_COLUMNS = {"Umsatz", "Belegfeld 1", "Datum"}
+THEORG_STA_ACCOUNT = "1210"
 
 
 def _find_header_row(raw: pd.DataFrame) -> int:
@@ -128,11 +129,11 @@ def automatic_statement_number(bookings: pd.DataFrame) -> int:
 
 def build_mt940_bytes(
     bookings: pd.DataFrame,
-    account_identification: str,
+    account_identification: str | None = None,
     opening_balance=Decimal("0.00"),
     statement_number: int | None = None,
 ) -> bytes:
-    account = re.sub(r"\s+", "", _text(account_identification)).upper()
+    account = re.sub(r"\s+", "", _text(account_identification or THEORG_STA_ACCOUNT)).upper()
     if not account:
         raise ValueError("Bitte gib die IBAN oder die Kontoidentifikation an.")
     if len(account) > 35 or not re.fullmatch(r"[A-Z0-9/.-]+", account):
@@ -221,9 +222,10 @@ def show_tab_theorg_sta():
     )
 
     st.subheader("Angabe für den MT940-Kontoauszug")
-    account = st.text_input(
-        "IBAN oder Kontoidentifikation",
-        help="Pflichtfeld :25: des MT940-Formats. Die DATEV-Datei enthält diese Angabe nicht.",
+    account = THEORG_STA_ACCOUNT
+    st.caption(
+        f"Die Kontoidentifikation für den Export ist fest auf **{account}** gesetzt. "
+        "Auszugsnummer und technischer Anfangssaldo werden automatisch berechnet."
     )
     statement_number = automatic_statement_number(bookings)
     st.caption(
@@ -231,10 +233,6 @@ def show_tab_theorg_sta():
         "Anfangssaldo **0,00 €** werden automatisch gesetzt. Der Endsaldo wird "
         "aus den Buchungen berechnet."
     )
-
-    if not account:
-        st.warning("Bitte ergänze die IBAN oder Kontoidentifikation für den Export.")
-        return
 
     try:
         sta_bytes = build_mt940_bytes(bookings, account)
