@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 
 import pandas as pd
 import streamlit as st
@@ -7,7 +8,7 @@ from tabs.wordpress_datev import DATEV_COLUMNS, _document_number, _serialize, da
 
 
 DATEV_ADVISER_NUMBER = 446024
-DATEV_CLIENT_NUMBER = 14117
+DATEV_CLIENT_NUMBER = 14168
 DATEV_ACCOUNT_LENGTH = 4
 DATEV_ACCOUNT_FRAMEWORK = "03"
 DATEV_INITIALS = "WD"
@@ -52,8 +53,15 @@ def read_myyolo_excel(uploaded_file) -> tuple[pd.DataFrame, pd.DataFrame]:
     return valid, invalid
 
 
-def build_document_number(prefix: str, receipt, invoice_type: str = "T-Rena") -> str:
+def build_document_number(
+    prefix: str,
+    receipt,
+    invoice_type: str = "T-Rena",
+    year: int | None = None,
+) -> str:
     receipt = _document_number(receipt)
+    if year is not None and re.search(r"(?:^|-)(?:19|20)\d{2}$", receipt) is None:
+        receipt = f"{receipt}-{year}"
     rv_prefix = "RV" if invoice_type == "RV-Fit" else ""
     return _document_number(f"{rv_prefix}{prefix}-{receipt}")
 
@@ -67,10 +75,14 @@ def build_booking_list(
     result["Konto"] = DEBITOR_ACCOUNT
     result["Gegenkonto"] = REVENUE_ACCOUNT
     result["KOST1"] = config["KOST1"]
-    result["Belegfeld 1"] = result["Beleg"].map(
-        lambda value: build_document_number(
-            config["Belegpräfix"], value, invoice_type
-        )
+    result["Belegfeld 1"] = result.apply(
+        lambda row: build_document_number(
+            config["Belegpräfix"],
+            row["Beleg"],
+            invoice_type,
+            year=row["Datum"].year,
+        ),
+        axis=1,
     )
     return result[
         [
@@ -156,7 +168,10 @@ def build_myyolo_datev_bytes(
         fields[7] = REVENUE_ACCOUNT
         fields[9] = row["Datum"].strftime("%d%m")
         fields[10] = build_document_number(
-            location_config["Belegpräfix"], row["Beleg"], invoice_type
+            location_config["Belegpräfix"],
+            row["Beleg"],
+            invoice_type,
+            year=row["Datum"].year,
         )
         booking_text = f'{row["Nachname"]} {row["Vorname"]}'.strip()
         fields[13] = booking_text[:60]
